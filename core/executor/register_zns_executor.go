@@ -2,9 +2,9 @@ package executor
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -40,9 +40,7 @@ func NewRegisterZnsExecutor(bc IBlockchain, tx *tx.Tx) (TxExecutor, error) {
 }
 
 func (e *RegisterZnsExecutor) Prepare() error {
-	// Mark the tree states that would be affected in this executor.
-	e.MarkAccountAssetsDirty(e.txInfo.AccountIndex, []int64{})
-	return nil
+	return e.BaseExecutor.Prepare(context.Background())
 }
 
 func (e *RegisterZnsExecutor) VerifyInputs() error {
@@ -140,10 +138,6 @@ func (e *RegisterZnsExecutor) GetExecutedTx() (*tx.Tx, error) {
 	e.tx.TxInfo = string(txInfoBytes)
 	e.tx.AccountIndex = e.txInfo.AccountIndex
 	return e.BaseExecutor.GetExecutedTx()
-}
-
-func (e *RegisterZnsExecutor) GenerateTxDetails() ([]*tx.TxDetail, error) {
-	return nil, nil
 }
 
 func (e *RegisterZnsExecutor) GenerateMempoolTx() (*mempool.MempoolTx, error) {

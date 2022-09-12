@@ -38,11 +38,6 @@ func (p *CommitProcessor) Process(tx *tx.Tx) error {
 	if err != nil {
 		return err
 	}
-	txDetails, err := executor.GenerateTxDetails()
-	if err != nil {
-		return err
-	}
-	tx.TxDetails = txDetails
 	err = executor.ApplyTransaction()
 	if err != nil {
 		panic(err)
@@ -58,5 +53,37 @@ func (p *CommitProcessor) Process(tx *tx.Tx) error {
 
 	p.bc.Statedb.Txs = append(p.bc.Statedb.Txs, tx)
 
+	return nil
+}
+
+type WitnessProcessor struct {
+	bc *BlockChain
+}
+
+func NewWitnessProcessor(bc *BlockChain) Processor {
+	return &WitnessProcessor{
+		bc: bc,
+	}
+}
+
+func (p *WitnessProcessor) Process(tx *tx.Tx) error {
+	executor, err := executor.NewTxExecutor(p.bc, tx)
+	if err != nil {
+		return fmt.Errorf("new tx executor failed")
+	}
+	err = executor.Prepare()
+	if err != nil {
+		return err
+	}
+	// TODO
+	witness, err := executor.GenerateWitness(0)
+	if err != nil {
+		return err
+	}
+	err = executor.ApplyTransaction()
+	if err != nil {
+		panic(err)
+	}
+	p.bc.Statedb.Witnesses = append(p.bc.Statedb.Witnesses, witness)
 	return nil
 }
